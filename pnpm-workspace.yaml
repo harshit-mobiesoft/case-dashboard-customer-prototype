@@ -1,0 +1,4 @@
+# Dependency build scripts are denied by default; none are needed (esbuild/swc ship prebuilt binaries).
+allowBuilds:
+  unrs-resolver: false
+  esbuild: false

@@ -1,0 +1,12 @@
+/** Triggers a browser download of generated text. Client-only. */
+export function downloadTextFile(fileName: string, contents: string): void {
+  const url = URL.createObjectURL(new Blob([contents], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Revoke on the next tick so the download has started.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
