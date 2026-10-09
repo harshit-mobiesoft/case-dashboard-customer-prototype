@@ -120,9 +120,11 @@ describe("CaseCard", () => {
 });
 
 describe("ResponseWindowCard", () => {
-  it("shows days left and a progressbar while open", () => {
+  it("shows days passed (matching the filling bar) and the deadline while open", () => {
     render(<ResponseWindowCard c={seedCase("sc-waiting-window")} now={NOW} />);
-    expect(screen.getByText("14")).toBeInTheDocument();
+    expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText("/ 21 days passed")).toBeInTheDocument();
+    expect(screen.queryByText(/days left/)).not.toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Response window elapsed" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /mark outcome/i })).not.toBeInTheDocument();
   });
@@ -130,6 +132,7 @@ describe("ResponseWindowCard", () => {
   it("goes urgent in the last 3 days and offers an early outcome link", () => {
     render(<ResponseWindowCard c={seedCase("ah-window-urgent")} now={NOW} />);
     expect(screen.getByRole("region", { name: "Response window" })).toHaveAttribute("data-urgent", "true");
+    expect(screen.getByText("19")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /mark outcome early/i })).toBeInTheDocument();
   });
 

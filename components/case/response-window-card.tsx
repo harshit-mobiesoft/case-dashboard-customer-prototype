@@ -21,6 +21,8 @@ export function ResponseWindowCard({ c, now }: { c: CaseRecord; now: Date }) {
     (new Date(responseWindowEndsAt).getTime() - new Date(sentAt).getTime()) / 86_400_000,
   );
 
+  const elapsedDays = Math.max(0, total - left);
+
   const tone = expired
     ? { head: "bg-red-50 border-red-100 text-red-800", pill: "bg-red-100 text-red-800" }
     : urgent
@@ -57,10 +59,9 @@ export function ResponseWindowCard({ c, now }: { c: CaseRecord; now: Date }) {
           <>
             <div className="flex items-end justify-between">
               <div>
-                <span className={cn("text-4xl font-bold", urgent ? "text-amber-700" : "text-gray-900")}>{left}</span>
-                <span className="text-sm text-gray-600 ml-1.5">
-                  / {total} {left === 1 ? "day" : "days"} left
-                </span>
+                {/* Elapsed, not remaining: it matches the bar below, which fills as time passes. */}
+                <span className={cn("text-4xl font-bold", urgent ? "text-amber-700" : "text-gray-900")}>{elapsedDays}</span>
+                <span className="text-sm text-gray-600 ml-1.5">/ {total} days passed</span>
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-600">Deadline</p>

@@ -63,7 +63,7 @@ One customer (Alex Rivera). **"My cases" shows just 5 cases** (so it looks like 
 | `ah-revision-requested` | You asked for changes; team revising |
 | `ah-awaiting-signature` | Letter ready to review & sign |
 | `ah-ready-to-send` | Signed — press "Send letter" |
-| `ah-waiting-window` / `ah-window-urgent` | Mailed: 14 days left / 2 days left (urgent) |
+| `ah-waiting-window` / `ah-window-urgent` | Mailed: day 7 of 21 / day 19 of 21 (urgent) |
 | `ah-outcome-needed` | Window closed — mark the outcome |
 | `ah-court-just-started` | Court filing unlocked, first step open |
 | `ah-court-needs-changes` / `ah-court-in-review` | A step was rejected with a note / submitted, under review |

@@ -48,7 +48,8 @@ test("response window shows urgent styling in the last days", async ({ page }) =
   await openCase(page, "ah-window-urgent");
   const card = page.getByRole("region", { name: "Response window" });
   await expect(card).toHaveAttribute("data-urgent", "true");
-  await expect(card).toContainText("2");
+  await expect(card).toContainText("19");
+  await expect(card).toContainText("/ 21 days passed");
   await card.getByRole("link", { name: "Mark outcome early" }).click();
   await expect(page).toHaveURL(/outcome$/);
 });
