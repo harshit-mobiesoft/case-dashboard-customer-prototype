@@ -19,6 +19,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { useAsyncAction, useOptimisticValue } from "@/lib/hooks/use-demo";
 import { cn } from "@/lib/utils";
 import { ActivityCard } from "./activity-card";
+import { DemoNextStep } from "@/components/demo/demo-next-step";
 import { PhaseCard } from "./phase-card";
 import { ResponseWindowCard } from "./response-window-card";
 import { StatusBanner } from "./status-banner";
@@ -71,12 +72,13 @@ export function CaseView({ c, now }: { c: CaseRecord; now: Date }) {
     <>
       <StatusBanner caseId={c.id} info={statusBar} />
       {dropboxBar && <StatusBanner caseId={c.id} info={dropboxBar} secondary />}
+      <DemoNextStep c={c} now={now} />
 
       <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
           <div className="min-w-0">
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-              <Link href={routes.dashboard} className="hover:underline">
+              <Link href={routes.dashboard} className="hover:underline whitespace-nowrap shrink-0">
                 My cases
               </Link>
               <span aria-hidden="true">/</span>

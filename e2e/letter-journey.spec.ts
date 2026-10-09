@@ -1,5 +1,8 @@
 import { demo, expect, openCase, statusBar, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 test("full journey: letter → sign → mail → wait → outcome → court filing → close", async ({ page }) => {
   const d = demo(page);
   await openCase(page, "sc-letter-in-progress");

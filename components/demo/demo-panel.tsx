@@ -1,30 +1,26 @@
 "use client";
 
-import { ChevronDown, FastForward, FlaskConical, RotateCcw, ShieldAlert, UserCog, X } from "lucide-react";
+import { ChevronDown, FlaskConical, RotateCcw, ShieldAlert, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { errorMessage, repository } from "@/lib/data/repository";
+import { repository } from "@/lib/data/repository";
 import { ACTIVATION_HERO_SCENARIOS, SMALL_CLAIMS_SCENARIOS, type DemoScenario } from "@/lib/data/seed";
 import { routes } from "@/lib/domain/routes";
-import { isResponseWindowExpired } from "@/lib/domain/status";
-import { describeTeamAction } from "@/lib/domain/transitions";
 import { cn } from "@/lib/utils";
-import { useDemoState, useNow } from "@/lib/hooks/use-demo";
+import { useDemoState } from "@/lib/hooks/use-demo";
 
 /**
- * Presenter tools, kept deliberately small: jump to any stage of the journey, and — only when it
- * applies to the case you're on — play the part of our team or the calendar.
+ * Presenter tools, kept deliberately small: jump to any stage of the journey. (Moving a case forward
+ * when it's waiting on our team or the calendar is a shortcut on the case page itself.)
  */
 export function DemoPanel() {
   const [open, setOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [busy, setBusy] = useState(false);
   const state = useDemoState();
-  const now = useNow();
   const params = useParams<{ caseId?: string }>();
   const { toast } = useToast();
 
@@ -34,24 +30,6 @@ export function DemoPanel() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
-
-  const activeCase = state && params.caseId ? state.cases.find((c) => c.id === params.caseId) : undefined;
-  const teamAction = activeCase ? describeTeamAction(activeCase) : null;
-  const canSkipAhead =
-    !!activeCase && activeCase.status === "mailed" && !!now && !isResponseWindowExpired(activeCase, now);
-  const hasSimulation = !!(teamAction?.advance || teamAction?.requestChanges || canSkipAhead);
-
-  async function run(label: string, fn: () => Promise<unknown>) {
-    setBusy(true);
-    try {
-      await fn();
-      toast({ title: label });
-    } catch (err) {
-      toast({ title: "Couldn't do that", description: errorMessage(err), variant: "error" });
-    } finally {
-      setBusy(false);
-    }
-  }
 
   function StageList({ title, scenarios }: { title: string; scenarios: DemoScenario[] }) {
     const available = scenarios.filter((s) => state?.cases.some((c) => c.id === s.id));
@@ -122,48 +100,6 @@ export function DemoPanel() {
 
             <StageList title="Activation Hero" scenarios={ACTIVATION_HERO_SCENARIOS} />
             <StageList title="Small Claims" scenarios={SMALL_CLAIMS_SCENARIOS} />
-
-            {hasSimulation && activeCase && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Simulate what happens next</h3>
-                {teamAction?.advance && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left h-auto bg-white"
-                    disabled={busy}
-                    onClick={() => run("Done", () => repository.simulateTeamAction(activeCase.id, "advance"))}
-                  >
-                    <UserCog className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    {teamAction.advance}
-                  </Button>
-                )}
-                {teamAction?.requestChanges && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left h-auto bg-white"
-                    disabled={busy}
-                    onClick={() => run("Done", () => repository.simulateTeamAction(activeCase.id, "request_changes"))}
-                  >
-                    <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    {teamAction.requestChanges}
-                  </Button>
-                )}
-                {canSkipAhead && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left h-auto bg-white"
-                    disabled={busy}
-                    onClick={() => run("Done", () => repository.fastForwardResponseWindow(activeCase.id))}
-                  >
-                    <FastForward className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Skip ahead 21 days
-                  </Button>
-                )}
-              </div>
-            )}
 
             <div className="border-t border-gray-100 pt-3 space-y-2">
               <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setConfirmReset(true)}>

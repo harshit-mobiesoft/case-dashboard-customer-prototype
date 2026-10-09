@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { demoStore } from "../data/store";
+import { isStrict, subscribeStrict } from "../domain/strict";
 import type { CaseRecord, DemoState } from "../domain/types";
 
 /** Demo state, or null before the client has hydrated it from storage. */
@@ -89,4 +90,9 @@ export function useOptimisticValue<T>(serverValue: T) {
     begin: (value: T) => setOverride({ value }),
     settle: () => setOverride(null),
   };
+}
+
+/** True when `?validate=1` turned the real validation rules on; false (the default) means nothing blocks. */
+export function useStrict(): boolean {
+  return useSyncExternalStore(subscribeStrict, isStrict, () => false);
 }

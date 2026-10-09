@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { signIn } from "@/lib/data/session";
+import { useStrict } from "@/lib/hooks/use-demo";
 import { routes } from "@/lib/domain/routes";
 import { isValidEmail } from "@/lib/domain/intake-validation";
 
 function SignupForm() {
   const router = useRouter();
+  const strict = useStrict();
   const params = useSearchParams();
   const emailFromUrl = params.get("email") ?? "";
   const justPaid = params.get("paid") === "1";
@@ -22,7 +24,7 @@ function SignupForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValidEmail(email)) return setError("Enter a valid email address.");
+    if (strict && !isValidEmail(email)) return setError("Enter a valid email address.");
     setError(null);
     setLoading(true);
     await new Promise((r) => setTimeout(r, 300));
@@ -118,7 +120,7 @@ function SignupForm() {
           )}
           <button
             type="submit"
-            disabled={loading || !email.trim()}
+            disabled={loading || (strict && !email.trim())}
             className="flex items-center justify-center gap-2 w-full bg-brand-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-brand-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Mail className="h-4 w-4" aria-hidden="true" />}

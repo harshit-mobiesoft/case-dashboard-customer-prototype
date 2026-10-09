@@ -13,7 +13,7 @@ import { isOrganized } from "@/lib/domain/evidence";
 import { QUESTIONS, groupByCategory } from "@/lib/domain/questionnaire";
 import { routes } from "@/lib/domain/routes";
 import type { CaseRecord } from "@/lib/domain/types";
-import { useAsyncAction } from "@/lib/hooks/use-demo";
+import { useAsyncAction, useStrict } from "@/lib/hooks/use-demo";
 import { cn } from "@/lib/utils";
 
 type Answer = boolean | "skip" | null;
@@ -58,6 +58,7 @@ function YesNoSkip({ name, legend, value, onChange }: { name: string; legend: st
 
 export function QuestionnaireView({ c, from }: { c: CaseRecord; from?: "documents" }) {
   const router = useRouter();
+  const strict = useStrict();
   const { toast } = useToast();
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [leaving, setLeaving] = useState(false);
@@ -104,7 +105,7 @@ export function QuestionnaireView({ c, from }: { c: CaseRecord; from?: "document
     );
   }
 
-  if (!isOrganized(c)) {
+  if (strict && !isOrganized(c)) {
     return (
       <main id="main" className="max-w-xl mx-auto px-4 sm:px-6 py-8">
         {backLink}
@@ -184,7 +185,7 @@ export function QuestionnaireView({ c, from }: { c: CaseRecord; from?: "document
           <p className="text-sm text-gray-600" aria-live="polite">
             {answered} answered{unanswered > 0 ? ` · ${unanswered} to go` : ""}
           </p>
-          <Button type="submit" size="lg" disabled={answered === 0} loading={submit.pending}>
+          <Button type="submit" size="lg" disabled={strict && answered === 0} loading={submit.pending}>
             Submit answers
           </Button>
         </div>

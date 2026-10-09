@@ -21,7 +21,7 @@ import {
   type SettlementResolution,
 } from "@/lib/domain/types";
 import { formatDate } from "@/lib/format";
-import { useAsyncAction } from "@/lib/hooks/use-demo";
+import { useAsyncAction, useStrict } from "@/lib/hooks/use-demo";
 import { cn } from "@/lib/utils";
 
 type Choice = "settled" | "unsatisfactory" | "no_response" | null;
@@ -31,6 +31,7 @@ export function OutcomeView({ c, now }: { c: CaseRecord; now: Date }) {
   const router = useRouter();
   const { toast } = useToast();
   const [choice, setChoice] = useState<Choice>(null);
+  const strict = useStrict();
   const [resolution, setResolution] = useState<SettlementResolution | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
   const [amount, setAmount] = useState("");
@@ -110,9 +111,9 @@ export function OutcomeView({ c, now }: { c: CaseRecord; now: Date }) {
   }
 
   async function handleSettle() {
-    if (!resolution) return;
+    if (strict && !resolution) return;
     setLeaving(true);
-    const r = await settle.run(resolution);
+    const r = await settle.run(resolution ?? "full_payment_received");
     if (r) setClosedNow(true);
     else setLeaving(false);
   }
@@ -122,12 +123,16 @@ export function OutcomeView({ c, now }: { c: CaseRecord; now: Date }) {
     let amountReceivedCents: number | null = null;
     if (type === "unsatisfactory") {
       const parsed = parseUsdToCents(amount);
-      if (parsed === "invalid") return setAmountError("Enter an amount like 250 or 250.00.");
-      amountReceivedCents = parsed;
+      if (parsed === "invalid") {
+        if (strict) return setAmountError("Enter an amount like 250 or 250.00.");
+      } else {
+        amountReceivedCents = parsed;
+      }
     }
     setAmountError(null);
 
-    if (windowOpen && !force) return setWarnOpen(true);
+    // The "are you sure?" step is part of strict mode only; the prototype just moves on.
+    if (strict && windowOpen && !force) return setWarnOpen(true);
 
     setLeaving(true);
     const r = await proceed.run({ type, issues: type === "unsatisfactory" ? issues : [], amountReceivedCents });
@@ -217,12 +222,12 @@ export function OutcomeView({ c, now }: { c: CaseRecord; now: Date }) {
             variant="success"
             className="w-full"
             onClick={() => void handleSettle()}
-            disabled={!resolution}
+            disabled={strict && !resolution}
             loading={settle.pending}
           >
             {settle.pending ? "Closing case…" : "Close my case"}
           </Button>
-          {!resolution && <p className="text-xs text-gray-600 text-center mt-2">Select how it was resolved to continue</p>}
+          {strict && !resolution && <p className="text-xs text-gray-600 text-center mt-2">Select how it was resolved to continue</p>}
         </ChoiceCard>
 
         <ChoiceCard
@@ -277,13 +282,13 @@ export function OutcomeView({ c, now }: { c: CaseRecord; now: Date }) {
           <Button
             className="w-full"
             onClick={() => void handleProceed("unsatisfactory")}
-            disabled={issues.length === 0}
+            disabled={strict && issues.length === 0}
             loading={proceed.pending}
           >
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
             {proceed.pending ? "Proceeding…" : "Proceed to court filing"}
           </Button>
-          {issues.length === 0 && (
+          {strict && issues.length === 0 && (
             <p className="text-xs text-gray-600 text-center mt-2">Select at least one issue to continue</p>
           )}
         </ChoiceCard>

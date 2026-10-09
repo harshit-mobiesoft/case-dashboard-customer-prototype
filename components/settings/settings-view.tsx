@@ -13,7 +13,7 @@ import { US_STATES, normalizeProfile, validateProfile, type ProfileErrors } from
 import { routes } from "@/lib/domain/routes";
 import type { Profile } from "@/lib/domain/types";
 import { formatPhone } from "@/lib/format";
-import { useAsyncAction, useDemoState } from "@/lib/hooks/use-demo";
+import { useAsyncAction, useDemoState, useStrict } from "@/lib/hooks/use-demo";
 
 export function SettingsView() {
   const state = useDemoState();
@@ -24,6 +24,7 @@ export function SettingsView() {
 
 function SettingsForm({ profile }: { profile: Profile }) {
   const { toast } = useToast();
+  const strict = useStrict();
   const [draft, setDraft] = useState<Profile>({ ...profile, phone: formatPhone(profile.phone) });
   const [errors, setErrors] = useState<ProfileErrors>({});
 
@@ -49,7 +50,7 @@ function SettingsForm({ profile }: { profile: Profile }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const found = validateProfile(draft);
+    const found = strict ? validateProfile(draft) : {};
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     const result = await save.run(normalizeProfile(draft));

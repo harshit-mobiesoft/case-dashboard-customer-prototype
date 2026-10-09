@@ -1,6 +1,9 @@
 import { test as plain } from "@playwright/test";
 import { SESSION_KEY, demo, expect, openCase, statusBar, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 test("progress survives a reload, and Reset demo data restores the seed", async ({ page }) => {
   const d = demo(page);
   await openCase(page, "sc-ready-to-send");
@@ -36,10 +39,9 @@ test("demo panel lists every scenario, can jump between them, and closes with Es
   await d.panel.getByRole("link", { name: /Court filing: step needs changes/ }).first().click();
   await expect(page).toHaveURL(/ah-court-needs-changes$/);
 
+  // Nothing is waiting on our team here, so there is no shortcut bar either.
+  await expect(page.getByRole("region", { name: "Prototype shortcut" })).toHaveCount(0);
   await d.open();
-  // Simulation buttons only appear when they apply to the case you're on.
-  await expect(d.panel.getByRole("button", { name: /Skip ahead 21 days/ })).toHaveCount(0);
-  await expect(d.panel.getByRole("button", { name: /Approve|Draft the letter|Apply the requested/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(d.panel).toBeHidden();
 });

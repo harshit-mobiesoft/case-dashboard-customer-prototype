@@ -4,6 +4,7 @@
 
 import * as t from "../domain/transitions";
 import type { TeamAction } from "../domain/transitions";
+import { isStrict } from "../domain/strict";
 import { TEST_CARD_DECLINED } from "../domain/card";
 import { countyForZip, searchCounties as searchCountyList, type County } from "../domain/counties";
 import { INTAKE_STEP_LABELS, keyForStep, type IntakeFormData } from "../domain/intake";
@@ -152,7 +153,8 @@ export function createRepository(options: {
     async requestSignIn(email) {
       await simulateNetwork();
       const known = store.getSnapshot()?.profile.email.toLowerCase();
-      if (!known || email.trim().toLowerCase() !== known) throw new AccountNotFoundError();
+      // Prototype: any email opens the demo customer's dashboard (strict mode keeps the real check).
+      if (isStrict() && (!known || email.trim().toLowerCase() !== known)) throw new AccountNotFoundError();
     },
 
     async saveDraft({ draftId, form, step }) {

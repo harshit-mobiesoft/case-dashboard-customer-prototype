@@ -1,9 +1,13 @@
+import { setStrict } from "@/lib/domain/strict";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RevisionForm } from "@/components/review/revision-form";
 import { SignDialog } from "@/components/review/sign-dialog";
 import { renderUi } from "./render";
+
+// These tests cover the validation rules, so they run in strict mode (the app default never blocks).
+beforeEach(() => setStrict(true));
 
 describe("SignDialog", () => {
   function setup(overrides: Partial<React.ComponentProps<typeof SignDialog>> = {}) {

@@ -15,7 +15,7 @@ describe("dashboard grouping", () => {
     const g = group({});
     // Only the dashboard cases are listed; the other stages are demo scenarios.
     const visible = seed.cases.filter((c) => !c.hiddenFromDashboard);
-    expect(visible).toHaveLength(5);
+    expect(visible).toHaveLength(9);
     expect(g.open).toHaveLength(visible.filter((c) => c.status !== "closed").length);
     expect(g.drafts).toHaveLength(2);
     expect(g.closed).toHaveLength(1);
@@ -33,13 +33,15 @@ describe("dashboard grouping", () => {
     expect(group({ query: "wrongful" }).open.length).toBeGreaterThan(1);
     expect(group({ query: "ah-30344" }).open.map((c) => c.id)).toEqual(["ah-awaiting-signature"]);
     expect(group({ query: "activation hero" }).open).toHaveLength(4);
+    expect(group({ query: "small claims" }).open).toHaveLength(4);
     // Scenario-only cases never show up in search, even when they match.
-    expect(group({ query: "pinecrest" }).open).toEqual([]);
+    expect(group({ query: "pinecrest" }).open.map((c) => c.id)).toEqual(["sc-awaiting-signature"]);
+    expect(group({ query: "delgado" }).open).toEqual([]);
   });
 
   it("filters by service and view, and applies the service filter to drafts", () => {
     expect(group({ service: "activation_hero" }).drafts).toHaveLength(1);
-    expect(group({ service: "small_claims" }).open).toHaveLength(0);
+    expect(group({ service: "small_claims" }).open).toHaveLength(4);
     const closedOnly = group({ view: "closed" });
     expect(closedOnly.open).toHaveLength(0);
     expect(closedOnly.drafts).toHaveLength(0);

@@ -3,6 +3,7 @@
 import { Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { MIN_REVISION_DETAILS } from "@/lib/domain/transitions";
+import { useStrict } from "@/lib/hooks/use-demo";
 import { REVISION_REASONS, type RevisionReason } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,8 @@ export function RevisionForm({ pending, error, onSubmit, onCancel }: Props) {
   const toggle = (reason: RevisionReason) =>
     setReasons((prev) => (prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]));
 
-  const canSubmit = reasons.length > 0 && details.trim().length >= MIN_REVISION_DETAILS;
+  const strict = useStrict();
+  const canSubmit = !strict || (reasons.length > 0 && details.trim().length >= MIN_REVISION_DETAILS);
 
   return (
     <form
@@ -65,7 +67,10 @@ export function RevisionForm({ pending, error, onSubmit, onCancel }: Props) {
 
         <div>
           <label htmlFor="revision-details" className="block text-sm font-medium text-gray-700 mb-1">
-            Tell us more <span className="text-gray-500 font-normal">(min {MIN_REVISION_DETAILS} characters)</span>
+            Tell us more{" "}
+            <span className="text-gray-500 font-normal">
+              {strict ? `(min ${MIN_REVISION_DETAILS} characters)` : "(optional)"}
+            </span>
           </label>
           <textarea
             id="revision-details"
@@ -76,9 +81,11 @@ export function RevisionForm({ pending, error, onSubmit, onCancel }: Props) {
             placeholder="Describe specifically what needs to be changed…"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm placeholder:text-gray-500 resize-none"
           />
-          <p className="text-xs text-gray-500 mt-1" aria-live="polite">
-            {details.trim().length} / {MIN_REVISION_DETAILS} min characters
-          </p>
+          {strict && (
+            <p className="text-xs text-gray-500 mt-1" aria-live="polite">
+              {details.trim().length} / {MIN_REVISION_DETAILS} min characters
+            </p>
+          )}
         </div>
 
         {error && (

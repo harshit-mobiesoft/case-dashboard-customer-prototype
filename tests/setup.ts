@@ -4,6 +4,7 @@ process.env.NEXT_PUBLIC_MOCK_LATENCY_MS = "0";
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
+import { setStrict } from "@/lib/domain/strict";
 
 // next/navigation must be mocked before any component module loads, so it lives here.
 const { routerPush } = vi.hoisted(() => ({ routerPush: vi.fn() }));
@@ -29,5 +30,6 @@ Element.prototype.releasePointerCapture = vi.fn();
 
 afterEach(() => {
   cleanup();
+  setStrict(false); // default = nothing blocks; tests that exercise validation opt in
   window.localStorage.clear();
 });

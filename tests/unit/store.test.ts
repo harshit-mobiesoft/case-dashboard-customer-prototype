@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { setStrict } from "@/lib/domain/strict";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AccountNotFoundError, PaymentDeclinedError, createRepository, NotFoundError, SimulatedNetworkError } from "@/lib/data/repository";
 import { emptyIntakeForm } from "@/lib/domain/intake";
 import { createDemoStore, isDemoState, STORAGE_KEY, type KeyValueStorage } from "@/lib/data/store";
@@ -13,6 +14,9 @@ function memoryStorage(initial: Record<string, string> = {}): KeyValueStorage & 
     removeItem: (k) => void delete data[k],
   };
 }
+
+// These files exercise the validation rules, so they run in strict mode (the app default is non-blocking).
+beforeEach(() => setStrict(true));
 
 describe("demo store", () => {
   it("is empty until init() (keeps SSR and first client render identical)", () => {
@@ -31,6 +35,15 @@ describe("demo store", () => {
     const b = createDemoStore({ storage, now: () => NOW });
     b.init();
     expect(b.getSnapshot()?.autoLinkedCount).toBe(7);
+  });
+
+  it("ignores (and cleans up) demo state saved under an older seed version", () => {
+    const storage = memoryStorage({ "cdcp:state:v2": JSON.stringify({ ...seed, cases: seed.cases.map((c) => ({ ...c, hiddenFromDashboard: true })) }) });
+    const store = createDemoStore({ storage, now: () => NOW });
+    store.init();
+    expect(store.getSnapshot()!.cases.filter((c) => !c.hiddenFromDashboard)).toHaveLength(9);
+    expect(storage.getItem("cdcp:state:v2")).toBeNull();
+    expect(storage.getItem(STORAGE_KEY)).not.toBeNull();
   });
 
   it.each([

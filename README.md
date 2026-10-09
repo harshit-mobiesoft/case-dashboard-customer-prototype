@@ -20,8 +20,12 @@ outcome, questionnaire, court filing, settings. Static legal/support pages and t
 header are included. Dashboard routes require a sign-in (as in production) and return you
 to where you were headed.
 
-The intake is **pre-filled and never blocks** (just press Continue). Add `?validate=1` to an intake URL
-for a blank form with full validation. The e-sign dialog is pre-filled too.
+**Nothing blocks a walkthrough.** The intake is pre-filled (just press Continue), the e-sign dialog is pre-filled,
+and no form needs to be valid to move on — empty questionnaire, edit request, court steps, outcome,
+evidence, settings and sign-in all go through and the app fills in sensible defaults. The real
+validation rules still exist: add `?validate=1` to any URL (it sticks for the tab; `?validate=0` turns it
+off) to get blank forms and full validation back. Order-of-steps rules (e.g. you can't mail an unsigned
+letter) always apply.
 
 Checkout accepts the test card `4242 4242 4242 4242` (approved) or `4000 0000 0000 0002` (declined);
 coupons `HERO10` / `HERO25`. Nothing real is charged or sent.
@@ -50,8 +54,8 @@ Set `NEXT_PUBLIC_MOCK_LATENCY_MS` to change simulated network delay (default 350
 
 ## The seeded scenarios
 
-One customer (Alex Rivera). **"My cases" shows just 5 cases** (so it looks like a real account); the other
-19 are scenario-only and live in the **Demo controls → "Jump to a stage"** list, in journey order:
+One customer (Alex Rivera). **"My cases" shows 9 cases** — 5 Activation Hero and 4 Small Claims, so it looks like a real account; the other
+15 are scenario-only and live in the **Demo controls → "Jump to a stage"** list, in journey order:
 **Activation Hero at every stage** plus a handful of Small Claims.
 
 | Activation Hero case | Stopped at |

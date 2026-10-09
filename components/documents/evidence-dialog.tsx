@@ -9,6 +9,7 @@ import { SelectField, TextAreaField, TextField } from "@/components/ui/field";
 import { EVIDENCE_TYPE_LABELS } from "@/lib/domain/labels";
 import { EVIDENCE_TYPES, type EvidenceItem, type EvidenceType } from "@/lib/domain/types";
 import { formatBytes } from "@/lib/format";
+import { useStrict } from "@/lib/hooks/use-demo";
 
 const MAX_FILES = 10;
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
@@ -53,9 +54,10 @@ function EvidenceForm({ initial, editing, dropboxConnected, pending, error, onSu
   const [files, setFiles] = useState<EvidenceFormValues["files"]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [attempted, setAttempted] = useState(false);
+  const strict = useStrict();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const titleError = attempted && title.trim() === "" ? "Give this evidence a short title." : null;
+  const titleError = strict && attempted && title.trim() === "" ? "Give this evidence a short title." : null;
 
   function pickFiles(list: FileList | null) {
     if (!list) return;
@@ -71,7 +73,7 @@ function EvidenceForm({ initial, editing, dropboxConnected, pending, error, onSu
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setAttempted(true);
-    if (title.trim() === "") return;
+    if (strict && title.trim() === "") return;
     onSubmit({ title, type, notes, files });
   }
 

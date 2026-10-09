@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { setStrict } from "@/lib/domain/strict";
+import { describe, expect, it, beforeEach } from "vitest";
 import { isOrganized } from "@/lib/domain/evidence";
 import { TASK_FORMS } from "@/lib/domain/tasks";
 import * as t from "@/lib/domain/transitions";
@@ -17,6 +18,9 @@ function expectError(fn: () => unknown, code: t.TransitionErrorCode) {
   }
   throw new Error("expected a TransitionError");
 }
+
+// These files exercise the validation rules, so they run in strict mode (the app default is non-blocking).
+beforeEach(() => setStrict(true));
 
 describe("the full customer journey", () => {
   it("walks letter → sign → mail → no response → court filing → close", () => {

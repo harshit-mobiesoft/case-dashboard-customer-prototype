@@ -8,6 +8,7 @@ import { StepDefendant } from "@/components/intake/step-defendant";
 import { StepPayment } from "@/components/intake/step-payment";
 import { StepReview } from "@/components/intake/step-review";
 import { StepUpgradeMail } from "@/components/intake/step-upgrade-mail";
+import { setStrict } from "@/lib/domain/strict";
 import { demoStore } from "@/lib/data/store";
 import { signIn, signOut } from "@/lib/data/session";
 import { emptyIntakeForm, type IntakeFormData } from "@/lib/domain/intake";
@@ -17,6 +18,7 @@ import { freshStore, renderUi } from "./render";
 beforeEach(() => {
   freshStore();
   signOut();
+  setStrict(true);
   // Most flow tests type every field themselves, so they run in the strict (blank, validating) mode.
   window.history.replaceState(null, "", "/smallclaimshero?validate=1");
 });
@@ -475,6 +477,7 @@ describe("IntakeFlow — end to end in the component layer", () => {
 
 describe("IntakeFlow — default (autofilled, non-blocking) mode", () => {
   beforeEach(() => {
+    setStrict(false);
     window.history.replaceState(null, "", "/smallclaimshero?new=1");
   });
 

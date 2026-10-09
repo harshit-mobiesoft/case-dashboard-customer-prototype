@@ -7,7 +7,7 @@ test.describe("My cases", () => {
 
   test("shows every group of cases", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1, name: "My cases" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /open cases · 4/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /open cases · 8/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /draft cases · 2/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /closed cases · 1/i })).toBeVisible();
     await expect(page.getByText("Prototype", { exact: true })).toBeVisible();
@@ -30,10 +30,12 @@ test.describe("My cases", () => {
     await page.getByRole("searchbox", { name: "Search cases" }).fill("nothing-matches-this");
     await expect(page.getByText("No cases match your filters")).toBeVisible();
     await page.getByRole("button", { name: "Clear filters" }).click();
-    await expect(cards).toHaveCount(5);
+    await expect(cards).toHaveCount(9);
 
     await page.getByLabel("Service", { exact: true }).selectOption("activation_hero");
     await expect(cards).toHaveCount(5);
+    await page.getByLabel("Service", { exact: true }).selectOption("small_claims");
+    await expect(cards).toHaveCount(4);
     await page.getByLabel("Service", { exact: true }).selectOption("all");
     await page.getByLabel("Show").selectOption("closed");
     await expect(cards).toHaveCount(1);

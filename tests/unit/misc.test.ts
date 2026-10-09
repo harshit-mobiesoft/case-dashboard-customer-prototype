@@ -4,6 +4,7 @@ import { ACTIVITY_LABELS } from "@/lib/domain/labels";
 import { buildLetter, latestVersion, letterToPlainText } from "@/lib/domain/letter";
 import { getCourtSteps, getLetterSteps, getResponseSteps } from "@/lib/domain/steps";
 import { validateTaskFields } from "@/lib/domain/tasks";
+import { setStrict } from "@/lib/domain/strict";
 import { daysRemaining, isExpired, windowElapsedPercent } from "@/lib/domain/time";
 import { ACTIVITY_TYPES } from "@/lib/domain/types";
 import { formatBytes, formatCurrency, formatPhone } from "@/lib/format";
@@ -44,7 +45,11 @@ describe("timelines", () => {
     expect(getLetterSteps(seedCase("sc-awaiting-signature"), fmt).some((s) => s.id === "questionnaire")).toBe(false);
     const ah = getLetterSteps(seedCase("ah-get-organized"), fmt);
     expect(ah.find((s) => s.id === "questionnaire")?.state).toBe("pending");
-    expect(ah.find((s) => s.id === "questionnaire")?.action).toBeUndefined();
+    // The prototype never blocks: the link is there even before the customer is "organized"...
+    expect(ah.find((s) => s.id === "questionnaire")?.action).toMatchObject({ kind: "link" });
+    // ...while strict mode keeps the real gate.
+    setStrict(true);
+    expect(getLetterSteps(seedCase("ah-get-organized"), fmt).find((s) => s.id === "questionnaire")?.action).toBeUndefined();
     const organized = getLetterSteps({ ...seedCase("ah-get-organized"), hasEvidenceToUpload: false }, fmt);
     expect(organized.find((s) => s.id === "questionnaire")?.state).toBe("active");
     expect(organized.find((s) => s.id === "questionnaire")?.action).toMatchObject({ kind: "link" });

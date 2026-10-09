@@ -1,5 +1,8 @@
 import { expect, openCase, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 test("Dropbox + evidence: connect, add with a file, edit, delete, suggestions, no-evidence rule", async ({ page }) => {
   await openCase(page, "sc-letter-in-progress", "/documents");
 

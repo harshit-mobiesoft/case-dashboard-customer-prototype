@@ -6,10 +6,13 @@ import { expect, test as base, type Page } from "@playwright/test";
  */
 export const SESSION_KEY = "cdcp:session:v1";
 
-export const test = base.extend<{ consoleErrors: string[]; signedIn: boolean }>({
+export const test = base.extend<{ consoleErrors: string[]; signedIn: boolean; strict: boolean }>({
+  // Default: nothing blocks. Specs that exercise validation opt in with test.use({ strict: true }).
+  strict: [false, { option: true }],
   // Most specs exercise the signed-in dashboard; auth specs opt out with test.use({ signedIn: false }).
   signedIn: [true, { option: true }],
-  context: async ({ context, signedIn }, use) => {
+  context: async ({ context, signedIn, strict }, use) => {
+    if (strict) await context.addInitScript(() => window.sessionStorage.setItem("cdcp:strict", "1"));
     if (signedIn) await context.addInitScript((key) => window.localStorage.setItem(key, "1"), SESSION_KEY);
     await use(context);
   },
@@ -48,6 +51,12 @@ export function demo(page: Page) {
       if (await panel.isVisible()) await page.getByRole("button", { name: "Close demo controls" }).click();
     },
     async click(name: RegExp | string) {
+      // Simulation buttons live inline on the case page ("Prototype shortcut"), not in the panel.
+      const inline = page.getByRole("region", { name: "Prototype shortcut" }).getByRole("button", { name });
+      if (await inline.isVisible()) {
+        await inline.click();
+        return;
+      }
       await this.open();
       const button = panel.getByRole("button", { name });
       // Rarely-used tools live under "More".

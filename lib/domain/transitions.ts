@@ -4,6 +4,7 @@
 
 import { isOrganized } from "./evidence";
 import { isResponseWindowExpired } from "./status";
+import { isStrict } from "./strict";
 import { createCourtTasks, validateTaskFields } from "./tasks";
 import { RESPONSE_WINDOW_DAYS, addDays, subtractDays } from "./time";
 import {
@@ -103,7 +104,10 @@ export interface EvidenceInput {
   files: { name: string; sizeBytes: number }[];
 }
 
+const DEFAULT_EVIDENCE_TITLE = "Untitled evidence";
+
 function validateEvidence(input: EvidenceInput): void {
+  if (!isStrict()) return;
   if (input.title.trim() === "") {
     throw new TransitionError("validation", "Give this evidence a short title.");
   }
@@ -123,7 +127,7 @@ export function addEvidence(c: CaseRecord, input: EvidenceInput, now: Date): Cas
   }));
   const item: EvidenceItem = {
     id,
-    title: input.title.trim(),
+    title: input.title.trim() || DEFAULT_EVIDENCE_TITLE,
     type: input.type,
     notes: input.notes.trim(),
     files,
@@ -156,7 +160,7 @@ export function updateEvidence(
   return logged(c, now, ["evidence_updated"], {
     evidence: c.evidence.map((e) =>
       e.id === itemId
-        ? { ...e, title: input.title.trim(), type: input.type, notes: input.notes.trim(), files }
+        ? { ...e, title: input.title.trim() || DEFAULT_EVIDENCE_TITLE, type: input.type, notes: input.notes.trim(), files }
         : e,
     ),
   });
@@ -201,10 +205,10 @@ export function submitQuestionnaire(
   if (c.service !== "activation_hero") {
     throw new TransitionError("invalid_status", "Only Activation Hero cases have a questionnaire.");
   }
-  if (!isOrganized(c)) {
+  if (isStrict() && !isOrganized(c)) {
     throw new TransitionError("not_organized", "Get organized first: add your evidence (and connect Dropbox) or confirm you have none.");
   }
-  if (Object.keys(answers).length === 0) {
+  if (isStrict() && Object.keys(answers).length === 0) {
     throw new TransitionError("validation", "Answer at least one question to continue.");
   }
   return logged(c, now, ["questionnaire_submitted", "claim_type_selected"], {
@@ -222,12 +226,12 @@ export function signLetter(
   now: Date,
 ): CaseRecord {
   assertStatus(c, ["letter_signature_sent"], "sign the letter");
-  if (!signatureMatches(input.typedName, input.legalName)) {
+  if (isStrict() && !signatureMatches(input.typedName, input.legalName)) {
     throw new TransitionError("validation", "Type your full legal name exactly as shown to sign.");
   }
   return logged(c, now, ["letter_signed"], {
     status: "letter_signed",
-    letter: { ...c.letter, signedAt: now.toISOString(), signedName: input.typedName.trim() },
+    letter: { ...c.letter, signedAt: now.toISOString(), signedName: input.typedName.trim() || input.legalName },
   });
 }
 
@@ -237,16 +241,17 @@ export function requestRevision(
   now: Date,
 ): CaseRecord {
   assertStatus(c, ["letter_signature_sent", "letter_signed"], "request a revision");
-  const reasons = input.reasons.filter((r) => REVISION_REASONS.includes(r));
-  if (reasons.length === 0) {
-    throw new TransitionError("validation", "Pick at least one reason for the change.");
-  }
-  const details = input.details.trim();
-  if (details.length < MIN_REVISION_DETAILS) {
-    throw new TransitionError("validation", `Tell us more — at least ${MIN_REVISION_DETAILS} characters.`);
-  }
-  if (details.length > 1000) {
-    throw new TransitionError("validation", "Details must be 1,000 characters or fewer.");
+  let reasons = input.reasons.filter((r) => REVISION_REASONS.includes(r));
+  let details = input.details.trim();
+  if (isStrict()) {
+    if (reasons.length === 0) throw new TransitionError("validation", "Pick at least one reason for the change.");
+    if (details.length < MIN_REVISION_DETAILS) {
+      throw new TransitionError("validation", `Tell us more — at least ${MIN_REVISION_DETAILS} characters.`);
+    }
+    if (details.length > 1000) throw new TransitionError("validation", "Details must be 1,000 characters or fewer.");
+  } else {
+    if (reasons.length === 0) reasons = ["Other"];
+    if (details === "") details = "Please review and update the letter.";
   }
   return logged(c, now, ["revision_requested"], {
     status: "letter_revision_requested",
@@ -307,10 +312,10 @@ export function proceedToCourt(
   const issues = (input.issues ?? []).filter((i) =>
     (UNSATISFACTORY_ISSUES as readonly string[]).includes(i),
   );
-  if (input.type === "unsatisfactory" && issues.length === 0) {
+  if (isStrict() && input.type === "unsatisfactory" && issues.length === 0) {
     throw new TransitionError("validation", "Select at least one issue to continue.");
   }
-  if (input.amountReceivedCents != null && input.amountReceivedCents < 0) {
+  if (isStrict() && input.amountReceivedCents != null && input.amountReceivedCents < 0) {
     throw new TransitionError("validation", "Amount received can't be negative.");
   }
   return logged(c, now, ["phase2_unlocked"], {
@@ -340,9 +345,10 @@ export function submitTask(
   if (task.status !== "unlocked" && task.status !== "rejected") {
     throw new TransitionError("invalid_status", "This step isn't open for submission.");
   }
-  const errors = validateTaskFields(task.type, fields);
-  const first = Object.values(errors)[0];
-  if (first) throw new TransitionError("validation", first);
+  if (isStrict()) {
+    const first = Object.values(validateTaskFields(task.type, fields))[0];
+    if (first) throw new TransitionError("validation", first);
+  }
 
   return logged(c, now, ["task_submitted"], {
     status: "phase2_in_progress",

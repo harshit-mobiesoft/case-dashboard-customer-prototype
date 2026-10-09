@@ -14,7 +14,7 @@ import {
   type IntakeFormData,
 } from "@/lib/domain/intake";
 import type { Service } from "@/lib/domain/types";
-import { useDemoState } from "@/lib/hooks/use-demo";
+import { useDemoState, useStrict } from "@/lib/hooks/use-demo";
 import { cn } from "@/lib/utils";
 import { StepClaim } from "./step-claim";
 import { StepClaimant } from "./step-claimant";
@@ -28,7 +28,7 @@ export function IntakeFlow({ service }: { service: Service }) {
   const demo = useDemoState();
   const session = useSession();
   const [form, setForm] = useState<IntakeFormData | null>(null);
-  const [strict, setStrict] = useState(false);
+  const strict = useStrict();
   const [step, setStep] = useState(1);
   const [draftId, setDraftId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -45,8 +45,10 @@ export function IntakeFlow({ service }: { service: Service }) {
     if (initialised.current || !demo || session === "unknown") return;
     initialised.current = true;
     const params = new URLSearchParams(window.location.search);
-    const strictMode = params.get("validate") === "1" || process.env.NEXT_PUBLIC_INTAKE_VALIDATION === "1";
-    setStrict(strictMode);
+    const strictMode =
+      params.get("validate") === "1" ||
+      process.env.NEXT_PUBLIC_INTAKE_VALIDATION === "1" ||
+      window.sessionStorage.getItem("cdcp:strict") === "1";
     const resumeId = params.get("resume");
     const draft = resumeId && params.get("new") !== "1" ? demo.drafts.find((d) => d.id === resumeId) : undefined;
 

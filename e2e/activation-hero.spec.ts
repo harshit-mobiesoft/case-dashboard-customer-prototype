@@ -1,5 +1,8 @@
 import { expect, openCase, statusBar, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 test("Activation Hero: get organized → questionnaire → our team takes over", async ({ page }) => {
   await openCase(page, "ah-get-organized");
 

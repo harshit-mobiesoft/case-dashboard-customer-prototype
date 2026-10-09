@@ -34,7 +34,7 @@ import { EVIDENCE_TYPE_LABELS, MAILING_METHOD_LABELS } from "@/lib/domain/labels
 import { routes } from "@/lib/domain/routes";
 import type { CaseRecord, EvidenceItem, Profile } from "@/lib/domain/types";
 import { formatBytes, formatDate } from "@/lib/format";
-import { useAsyncAction, useOptimisticValue } from "@/lib/hooks/use-demo";
+import { useAsyncAction, useOptimisticValue, useStrict } from "@/lib/hooks/use-demo";
 import { EvidenceDialog, type EvidenceFormValues } from "./evidence-dialog";
 
 type DialogState =
@@ -50,6 +50,7 @@ export function DocumentsView({ c, profile }: { c: CaseRecord; profile: Profile;
 
   const fail = (title: string) => (message: string) => toast({ title, description: message, variant: "error" });
   const readOnly = c.status === "closed";
+  const strict = useStrict();
   const organized = isOrganized(c);
   const noEvidenceChoice = useOptimisticValue(c.hasEvidenceToUpload === false);
   const noEvidence = noEvidenceChoice.value;
@@ -135,9 +136,11 @@ export function DocumentsView({ c, profile }: { c: CaseRecord; profile: Profile;
 
       {c.service === "activation_hero" && c.status === "paid_pending_claim_type_selection" && (
         <Alert tone={organized ? "success" : "info"}>
-          {organized ? (
+          {organized || !strict ? (
             <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="font-medium">You&apos;re organized — next, answer a few quick questions.</span>
+              <span className="font-medium">
+                {organized ? "You're organized — next, answer a few quick questions." : "Add evidence if you like, or move straight on to a few quick questions."}
+              </span>
               <Link href={routes.questionnaire(c.id, "documents")} className="inline-flex items-center gap-1 font-medium underline">
                 Start questionnaire <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>

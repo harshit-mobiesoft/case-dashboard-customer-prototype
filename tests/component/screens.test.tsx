@@ -1,3 +1,4 @@
+import { setStrict } from "@/lib/domain/strict";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -14,6 +15,7 @@ import { seed } from "../unit/helpers";
 import { freshStore, push, renderUi, storedCase } from "./render";
 
 beforeEach(() => {
+  setStrict(true);
   freshStore();
   push.mockClear();
 });
@@ -46,7 +48,7 @@ describe("DashboardView", () => {
     await user.type(search, "zzzz-nothing");
     expect(screen.getByText("No cases match your filters")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
-    expect(screen.getAllByRole("link", { name: /open case against/i })).toHaveLength(5);
+    expect(screen.getAllByRole("link", { name: /open case against/i })).toHaveLength(9);
   });
 
   it("filters by service and by view", async () => {
@@ -59,8 +61,7 @@ describe("DashboardView", () => {
     expect(links).toHaveLength(5);
 
     await user.selectOptions(screen.getByLabelText("Service"), "small_claims");
-    expect(screen.queryAllByRole("link", { name: /open case against/i })).toHaveLength(0);
-    expect(screen.queryByRole("heading", { name: /open cases/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /open case against/i })).toHaveLength(4);
     expect(screen.getByRole("heading", { name: /draft cases/i })).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Service"), "all");

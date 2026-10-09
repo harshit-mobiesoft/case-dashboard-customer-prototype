@@ -7,11 +7,12 @@ import { AlertCircle, Loader2, LogIn } from "lucide-react";
 import { repository } from "@/lib/data/repository";
 import { safeNextPath, signIn } from "@/lib/data/session";
 import { routes } from "@/lib/domain/routes";
-import { useDemoState } from "@/lib/hooks/use-demo";
+import { useDemoState, useStrict } from "@/lib/hooks/use-demo";
 
 export function HomePage() {
   const router = useRouter();
   const demo = useDemoState();
+  const strict = useStrict();
 
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
@@ -88,7 +89,7 @@ export function HomePage() {
                   )}
                   <button
                     type="submit"
-                    disabled={loading || !email.trim()}
+                    disabled={loading || (strict && !email.trim())}
                     className="flex items-center justify-center gap-2 w-full bg-brand-600 text-white py-3 rounded-lg font-semibold text-sm hover:bg-brand-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <LogIn className="h-4 w-4" aria-hidden="true" />}

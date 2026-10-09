@@ -1,5 +1,8 @@
 import { demo, expect, openCase, statusBar, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 async function requestEdit(page: import("@playwright/test").Page, reasons: string[], details: string) {
   const form = page.getByRole("form", { name: "Request an edit" });
   const submit = form.getByRole("button", { name: "Submit edit request" });

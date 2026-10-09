@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { CheckboxField, TextField } from "@/components/ui/field";
 import { signatureMatches } from "@/lib/domain/transitions";
+import { useStrict } from "@/lib/hooks/use-demo";
 
 interface Props {
   open: boolean;
@@ -21,6 +22,7 @@ export function SignDialog({ open, onOpenChange, legalName, pending, error, onSi
   const [name, setName] = useState(legalName);
   const [agree, setAgree] = useState(true);
   const [attempted, setAttempted] = useState(false);
+  const strict = useStrict();
 
   useEffect(() => {
     if (open) {
@@ -31,13 +33,13 @@ export function SignDialog({ open, onOpenChange, legalName, pending, error, onSi
   }, [open, legalName]);
 
   const nameOk = signatureMatches(name, legalName);
-  const nameError = attempted && !nameOk ? `Type your full legal name exactly as shown: ${legalName}` : null;
-  const agreeError = attempted && !agree ? "You need to agree to sign electronically." : null;
+  const nameError = strict && attempted && !nameOk ? `Type your full legal name exactly as shown: ${legalName}` : null;
+  const agreeError = strict && attempted && !agree ? "You need to agree to sign electronically." : null;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setAttempted(true);
-    if (nameOk && agree) onSign(name);
+    if (!strict || (nameOk && agree)) onSign(name);
   }
 
   return (

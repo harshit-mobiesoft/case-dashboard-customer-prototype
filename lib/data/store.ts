@@ -6,9 +6,9 @@
 // - All storage access is try/catch-guarded (private mode, quota, blocked storage).
 
 import type { DemoState } from "../domain/types";
-import { buildSeed } from "./seed";
+import { buildSeed, SEED_VERSION } from "./seed";
 
-export const STORAGE_KEY = "cdcp:state:v2";
+export const STORAGE_KEY = `cdcp:state:v${SEED_VERSION}`;
 
 type Listener = () => void;
 
@@ -77,6 +77,14 @@ export function createDemoStore(options: {
   return {
     init() {
       if (state) return;
+      // Drop copies saved under older seed versions.
+      for (let v = 1; v < SEED_VERSION; v++) {
+        try {
+          options.storage?.removeItem(`cdcp:state:v${v}`);
+        } catch {
+          // ignore
+        }
+      }
       state = read() ?? buildSeed(now());
       write(state);
       emit();

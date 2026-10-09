@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 test.describe("home page & sign-in", () => {
-  test.use({ signedIn: false });
+  test.use({ signedIn: false, strict: true });
 
   test("shows the sign-in form with the demo email pre-filled, then opens the dashboard", async ({ page }) => {
     await page.goto("/");
@@ -107,5 +107,22 @@ test.describe("home page & sign-in", () => {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
     }
+  });
+});
+
+test.describe("home page — default (non-blocking) mode", () => {
+  test.use({ signedIn: false });
+
+  test("any email — even an empty one — opens the demo dashboard", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Email address").fill("someone@else.com");
+    await page.getByRole("button", { name: "Sign in to my dashboard" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    await page.evaluate(() => window.localStorage.removeItem("cdcp:session:v1"));
+    await page.goto("/");
+    await page.getByLabel("Email address").fill("");
+    await page.getByRole("button", { name: "Sign in to my dashboard" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 });

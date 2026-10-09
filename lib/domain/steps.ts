@@ -5,6 +5,7 @@ import { MAILING_METHOD_LABELS } from "./labels";
 import { isOrganized } from "./evidence";
 import { routes } from "./routes";
 import { isResponseWindowExpired } from "./status";
+import { isStrict } from "./strict";
 import { daysRemaining } from "./time";
 import type { CaseRecord, CourtTask } from "./types";
 
@@ -101,7 +102,8 @@ export function getLetterSteps(c: CaseRecord, formatDate: FormatDate): TimelineS
       icon: "clipboard",
       state: questionnaireDone ? "complete" : organized ? "active" : "pending",
       action:
-        needed && organized
+        // In strict mode the questionnaire waits until the customer is organized; the prototype never blocks.
+        needed && (organized || !isStrict())
           ? { kind: "link", label: "Start questionnaire →", href: routes.questionnaire(c.id) }
           : undefined,
     });

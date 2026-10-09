@@ -31,10 +31,10 @@ test.describe("Activation Hero scenarios", () => {
     });
   }
 
-  test("the dashboard stays short; every AH stage is one click away in the demo panel", async ({ page }) => {
+  test("the dashboard stays short (AH + Small Claims mix); every AH stage is one click away in the demo panel", async ({ page }) => {
     const d = demo(page);
     await page.goto("/dashboard");
-    await expect(page.getByRole("link", { name: /open case against/i })).toHaveCount(5);
+    await expect(page.getByRole("link", { name: /open case against/i })).toHaveCount(9);
 
     await d.open();
     for (const s of STAGES) {
@@ -78,5 +78,47 @@ test.describe("Activation Hero scenarios", () => {
     await expect(page.getByText("email.png")).toBeVisible();
     await openCase(page, "ah-evidence-nudge");
     await expect(statusBar(page)).toContainText("preparing your demand letter");
+  });
+
+  test("the 'Prototype shortcut' bar appears only when the case is waiting on our team or the calendar", async ({ page }) => {
+    const bar = page.getByRole("region", { name: "Prototype shortcut" });
+    for (const [id, button] of [
+      ["ah-letter-in-progress", /Draft the letter/],
+      ["ah-revision-requested", /Apply the requested changes/],
+      ["ah-court-in-review", /Approve the submitted step/],
+      ["ah-waiting-window", /Skip ahead 21 days/],
+      ["ah-window-urgent", /Skip ahead 21 days/],
+    ] as const) {
+      await openCase(page, id);
+      await expect(bar).toBeVisible();
+      await expect(bar.getByRole("button", { name: button })).toBeVisible();
+    }
+    for (const id of ["ah-awaiting-signature", "ah-ready-to-send", "ah-outcome-needed", "ah-court-needs-changes", "ah-court-ready-to-close", "ah-closed-court", "ah-get-organized"]) {
+      await openCase(page, id);
+      await expect(statusBar(page)).toBeVisible();
+      await expect(bar).toHaveCount(0);
+    }
+  });
+
+  test("a viewer can walk the whole journey without ever opening Demo controls", async ({ page }) => {
+    const bar = page.getByRole("region", { name: "Prototype shortcut" });
+    await openCase(page, "ah-letter-in-progress");
+    await bar.getByRole("button", { name: /Draft the letter/ }).click();           // team step
+    await statusBar(page).getByRole("link", { name: /review and sign/i }).click();  // customer step
+    await page.getByRole("button", { name: "Sign now" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Sign letter" }).click();
+    await page.getByRole("link", { name: "Back to my case" }).click();
+    await page.getByRole("button", { name: "Send letter to defendant" }).click();
+    await bar.getByRole("button", { name: /Skip ahead 21 days/ }).click();         // calendar step
+    await statusBar(page).getByRole("link", { name: "Mark outcome" }).click();
+    await page.getByRole("button", { name: /^no response/i }).click();
+    await page.getByRole("button", { name: "Proceed to court filing" }).click();
+    const form = page.getByRole("form", { name: "File your Statement of Claim online" });
+    await form.getByLabel(/court confirmation number/i).fill("SC-1");
+    await form.getByRole("checkbox").check();
+    await form.getByRole("button", { name: /submit for review/i }).click();
+    await bar.getByRole("button", { name: /Approve the submitted step/ }).click(); // team step again
+    await expect(page.getByRole("form", { name: "Pay the court filing fee" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Demo controls" })).toBeVisible();
   });
 });

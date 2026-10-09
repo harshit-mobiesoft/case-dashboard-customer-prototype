@@ -33,6 +33,12 @@ const DEMO_DROPBOX = { connected: true, accountEmail: "alex.rivera@dropbox.examp
 const iso = (d: Date) => d.toISOString();
 
 /**
+ * Bump this whenever the seeded cases change. Demo state is saved in the browser, so the storage key
+ * includes it: a new seed version means everyone starts from the new data instead of a stale copy.
+ */
+export const SEED_VERSION = 3;
+
+/**
  * "My cases" shows only a few cases so the dashboard looks like a real customer's. Every other
  * stage is a scenario: reachable from the Demo panel's "Jump to a stage" list.
  */
@@ -42,6 +48,10 @@ export const DASHBOARD_CASE_IDS = new Set([
   "ah-waiting-window",
   "ah-court-needs-changes",
   "ah-closed-settled",
+  "sc-letter-in-progress",
+  "sc-awaiting-signature",
+  "sc-waiting-window",
+  "sc-court-in-review",
 ]);
 
 export interface DemoScenario {

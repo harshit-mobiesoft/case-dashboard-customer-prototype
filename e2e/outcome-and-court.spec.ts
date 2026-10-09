@@ -1,5 +1,8 @@
 import { demo, expect, openCase, statusBar, test } from "./fixtures";
 
+// These specs exercise validation, so they run in strict mode (the app default never blocks).
+test.use({ strict: true });
+
 test.describe("outcome", () => {
   test("settled while the window is open closes the case without a warning", async ({ page }) => {
     await openCase(page, "ah-waiting-window", "/outcome");

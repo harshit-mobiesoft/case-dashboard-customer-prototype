@@ -145,7 +145,7 @@ test.describe("intake — Small Claims Hero (signed in)", () => {
     await page.getByRole("button", { name: /pay \$89\.00/i }).click();
     await expect(page.getByText(/card was declined/i)).toBeVisible();
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: /open cases · 4/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /open cases · 8/i })).toBeVisible();
   });
 
   test("validation: every step blocks until fixed and explains why", async ({ page }) => {
@@ -378,7 +378,7 @@ test.describe("intake — signed out", () => {
   });
 
   test("the signup page validates and links back to sign-in", async ({ page }) => {
-    await page.goto("/signup");
+    await page.goto("/signup?validate=1");
     await page.getByLabel("Email address").fill("not-an-email");
     await page.getByRole("button", { name: "Send account setup link" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Enter a valid email address." })).toBeVisible();

@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { repository } from "@/lib/data/repository";
 import { TASK_FORMS, validateTaskFields } from "@/lib/domain/tasks";
 import type { CourtTask } from "@/lib/domain/types";
-import { useAsyncAction } from "@/lib/hooks/use-demo";
+import { useAsyncAction, useStrict } from "@/lib/hooks/use-demo";
 
 export function TaskForm({ caseId, task }: { caseId: string; task: CourtTask }) {
   const { toast } = useToast();
@@ -20,10 +20,11 @@ export function TaskForm({ caseId, task }: { caseId: string; task: CourtTask }) 
     (message) => toast({ title: "Couldn't submit this step", description: message, variant: "error" }),
   );
   const resubmitting = task.status === "rejected";
+  const strict = useStrict();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const found = validateTaskFields(task.type, fields);
+    const found = strict ? validateTaskFields(task.type, fields) : {};
     setErrors(found);
     if (Object.keys(found).length > 0) return;
     const result = await submit.run();
